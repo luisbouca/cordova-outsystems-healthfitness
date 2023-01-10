@@ -67,6 +67,8 @@
     <config-file target="*-Info.plist" parent="BGTaskSchedulerPermittedIdentifiers">
       <array>
         <string>com.outsystems.health.default</string>
+        <string>com.outsystems.health.custom</string>
+        <string>com.outsystems.health.web</string>
       </array>
     </config-file>
 

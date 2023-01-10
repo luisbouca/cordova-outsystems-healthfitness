@@ -12,6 +12,7 @@
 @implementation AppDelegate(AppDelegateHealthFitness)
 
 static NSString* taskId = @"com.outsystems.health.custom";
+static NSString* taskId2 = @"com.outsystems.health.web";
 NSURLSession* sharedSession;
 NSUInteger count;
 
@@ -66,7 +67,7 @@ NSUInteger count;
         // new task
         BGProcessingTaskRequest *request = [[BGProcessingTaskRequest alloc] initWithIdentifier:taskId];
         request.requiresNetworkConnectivity = YES;
-        request.earliestBeginDate = [NSDate dateWithTimeIntervalSinceNow:UIApplicationBackgroundFetchIntervalMinimum];
+        request.earliestBeginDate = [NSDate dateWithTimeIntervalSinceNow:600];
         BOOL success = [[BGTaskScheduler sharedScheduler] submitTaskRequest:request error:&error];
         if (!success) {
             // Errorcodes https://stackoverflow.com/a/58224050/872051
@@ -96,9 +97,9 @@ NSUInteger count;
             [task setTaskCompletedWithSuccess:true];
         }];
     }else{
-        [UIApplication.sharedApplication setMinimumBackgroundFetchInterval:UIApplicationBackgroundFetchIntervalMinimum];
+        [UIApplication.sharedApplication setMinimumBackgroundFetchInterval:600];
     }
-    NSURLSessionConfiguration* config = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:@"BGSessionWSHealthKit"];
+    NSURLSessionConfiguration* config = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:taskId2];
     config.sessionSendsLaunchEvents = true;
     config.waitsForConnectivity = true;
     config.shouldUseExtendedBackgroundIdleMode = true;
@@ -114,14 +115,17 @@ NSUInteger count;
     //Check userdefaults and if anything is found run the swift functions
     NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
     NSArray* tasks = [defaults valueForKey:@"BackgroundTasks"];
-    if (tasks.count < 1 ) {
-        return UIBackgroundFetchResultNoData;
-    }
     [[UNUserNotificationCenter currentNotificationCenter] getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
         if (settings.authorizationStatus == UNAuthorizationStatusAuthorized && [defaults valueForKey:@"NotificationActive"]) {
             [self fireNotification:false];
         }
     }];
+    if (tasks.count < 1 ) {
+        NSLog(@"No Background Tasks Found!");
+        return UIBackgroundFetchResultNoData;
+    }else{
+        NSLog(@"Background Tasks Found!");
+    }
     count = 0;
     return [self doTask:[tasks mutableCopy] withID:0];
     
@@ -573,6 +577,7 @@ NSUInteger count;
                                 @{
                                     @"startDate": [self stringFromDate:sample.startDate],
                                     @"endDate": [self stringFromDate:sample.endDate],
+                                    @"units" : unitString,
                                     @"Source":@{
                                         @"OS":[NSString stringWithFormat:@"%ld.%ld.%ld",(long)sample.sourceRevision.operatingSystemVersion.majorVersion,(long)sample.sourceRevision.operatingSystemVersion.minorVersion,(long)sample.sourceRevision.operatingSystemVersion.patchVersion],
                                         @"Device": sample.sourceRevision.productType,
@@ -641,6 +646,7 @@ NSUInteger count;
                                 @{
                                     @"startDate": [self stringFromDate:sample.startDate],
                                     @"endDate": [self stringFromDate:sample.endDate],
+                                    @"units" : unitString,
                                     @"Source":@{
                                         @"OS":[NSString stringWithFormat:@"%ld.%ld.%ld",(long)sample.sourceRevision.operatingSystemVersion.majorVersion,(long)sample.sourceRevision.operatingSystemVersion.minorVersion,(long)sample.sourceRevision.operatingSystemVersion.patchVersion],
                                         @"Device": sample.sourceRevision.productType,
